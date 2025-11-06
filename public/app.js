@@ -111,6 +111,7 @@
     bindLogout();
     bindPasswordSetup();
     bindBackToLogin();
+    bindSidebarToggle();
 
     // Check if already logged in
     if (state.accessToken) {
@@ -1278,6 +1279,19 @@
       state.pages = [];
       state.currentPage = null;
       showLogin();
+    });
+  }
+
+  function bindSidebarToggle() {
+    const btn = el("btn-toggle-sidebar");
+    const sidebar = el("sidebar");
+    const mainContent = el("main-content");
+    
+    if (!btn) return;
+    
+    btn.addEventListener("click", function () {
+      if (sidebar) sidebar.classList.toggle("collapsed");
+      if (mainContent) mainContent.classList.toggle("expanded");
     });
   }
 
