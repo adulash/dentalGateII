@@ -7,15 +7,14 @@
     "dob": "",
     "gender": "male",
     "job_title": "",
-    "Specialty": "",
+    "specialty": "",
     "network_id": "",
     "supervisor_id": "",
     "fullname_ar": "",
     "fullname_en": "",
-    "facilitiy_id": "",
+    "facility_id": "",
     "phone": "",
     "address": "",
-    "status": "",
     "comments": ""
   },
   {
@@ -26,15 +25,14 @@
     "dob": "",
     "gender": "",
     "job_title": "",
-    "Specialty": "",
+    "specialty": "",
     "network_id": "",
     "supervisor_id": "",
     "fullname_ar": "",
     "fullname_en": "",
-    "facilitiy_id": "",
+    "facility_id": "",
     "phone": "",
     "address": "",
-    "status": "",
     "comments": ""
   }
 ]

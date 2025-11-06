@@ -14,24 +14,24 @@
 
   // Load tokens from localStorage
   function loadTokens() {
-    state.accessToken = localStorage.getItem('accessToken');
-    state.refreshToken = localStorage.getItem('refreshToken');
+    state.accessToken = localStorage.getItem("accessToken");
+    state.refreshToken = localStorage.getItem("refreshToken");
   }
 
   // Save tokens to localStorage
   function saveTokens(accessToken, refreshToken) {
     state.accessToken = accessToken;
     state.refreshToken = refreshToken;
-    if (accessToken) localStorage.setItem('accessToken', accessToken);
-    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    if (accessToken) localStorage.setItem("accessToken", accessToken);
+    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
   }
 
   // Clear tokens
   function clearTokens() {
     state.accessToken = null;
     state.refreshToken = null;
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
   }
 
   // Helper to make API calls with automatic token refresh
@@ -41,7 +41,7 @@
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": state.accessToken ? `Bearer ${state.accessToken}` : "",
+          Authorization: state.accessToken ? `Bearer ${state.accessToken}` : "",
         },
         body: JSON.stringify(payload),
       });
@@ -49,7 +49,7 @@
       const data = await response.json();
 
       // If token expired, try to refresh
-      if (response.status === 401 && state.refreshToken && !endpoint.includes('auth/refresh')) {
+      if (response.status === 401 && state.refreshToken && !endpoint.includes("auth/refresh")) {
         const refreshed = await refreshAccessToken();
         if (refreshed) {
           // Retry original request with new token
@@ -59,7 +59,7 @@
 
       return data;
     } catch (error) {
-      console.error('API call error:', error);
+      console.error("API call error:", error);
       return { ok: false, message: error.message };
     }
   }
@@ -85,7 +85,7 @@
       showLogin();
       return false;
     } catch (error) {
-      console.error('Token refresh error:', error);
+      console.error("Token refresh error:", error);
       clearTokens();
       showLogin();
       return false;
@@ -111,17 +111,17 @@
     bindLogout();
     bindPasswordSetup();
     bindBackToLogin();
-    
+
     // Check if already logged in
     if (state.accessToken) {
       // Try to restore session
-      apiCall('auth/me').then(res => {
+      apiCall("auth/me").then((res) => {
         if (res.ok && res.user) {
           state.user = res.user;
           state.pages = res.pages || [];
           showDashboard();
           buildNav();
-          navigate(state.pages[0] || 'Profile');
+          navigate(state.pages[0] || "Profile");
         } else {
           showLogin();
         }
@@ -134,7 +134,7 @@
   function bindLogin() {
     const form = el("login-form");
     if (!form) return;
-    
+
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       const email = el("login-email").value.trim();
@@ -145,7 +145,7 @@
 
       try {
         const res = await apiCall("auth/login", { email, password });
-        
+
         hideLoading();
 
         if (!res || !res.ok) {
@@ -264,7 +264,7 @@
     }
 
     showLoading();
-    apiCall("list", {table: page, page: 1, pageSize: 25, filters: {}})
+    apiCall("list", { table: page, page: 1, pageSize: 25, filters: {} })
       .then((res) => {
         hideLoading();
         renderTable(res);
@@ -286,16 +286,29 @@
     apiCall("profile/get").then((res) => {
       hideLoading();
       if (!res || !res.ok) {
-        root.innerHTML = `<div class="text-danger">Error loading profile: ${res?.message || "Unknown error"}</div>`;
+        root.innerHTML = `<div class="text-danger">Error loading profile: ${
+          res?.message || "Unknown error"
+        }</div>`;
         return;
       }
 
       const profile = res.profile || {};
       const fields = [
-        "employee_id", "national_id", "scs_id", "dob", "gender",
-        "job_title", "Specialty", "network_id", "supervisor_id",
-        "fullname_ar", "fullname_en", "facilitiy_id",
-        "phone", "address", "status", "comments"
+        "employee_id",
+        "national_id",
+        "scfhs_id",
+        "dob",
+        "gender",
+        "job_title",
+        "specialty",
+        "network_id",
+        "supervisor_id",
+        "fullname_ar",
+        "fullname_en",
+        "facility_id",
+        "phone",
+        "address",
+        "comments",
       ];
 
       const escapeHtml = (text) => {
@@ -312,12 +325,16 @@
       const form = fields
         .map(
           (name) =>
-            `<div class="mb-2"><label class="form-label">${escapeHtml(name)}</label><input class="form-control" id="prof-${name}" value="${escapeHtml(String(profile[name] || ""))}"></div>`
+            `<div class="mb-2"><label class="form-label">${escapeHtml(
+              name
+            )}</label><input class="form-control" id="prof-${name}" value="${escapeHtml(
+              String(profile[name] || "")
+            )}"></div>`
         )
         .join("");
 
       root.innerHTML = `<div class="card"><div class="card-body"><h6 class="mb-3">My Profile</h6>${warningMsg}${form}<button class="btn btn-primary" id="btn-save-profile">Save</button><div class="text-danger small mt-2" id="profile-error" style="display:none"></div></div></div>`;
-      
+
       el("btn-save-profile").onclick = () => {
         const data = {};
         fields.forEach((n) => (data[n] = document.getElementById(`prof-${n}`).value));
@@ -341,7 +358,8 @@
 
           const successMsg = document.createElement("div");
           successMsg.className = "alert alert-success alert-dismissible fade show mt-2";
-          successMsg.innerHTML = '<strong>Saved!</strong> Profile updated successfully. <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+          successMsg.innerHTML =
+            '<strong>Saved!</strong> Profile updated successfully. <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
           errorEl.parentElement.insertBefore(successMsg, errorEl);
           setTimeout(() => successMsg.remove(), 3000);
         });
@@ -352,13 +370,14 @@
   function renderAdmin() {
     const root = el("page-content");
     showLoading();
-    
+
     apiCall("admin/listUsers").then((res) => {
       hideLoading();
       const users = res?.users || [];
-      
-      const header = '<div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0">Users</h6><button class="btn btn-sm btn-success" id="btn-add-user">Add User</button></div>';
-      
+
+      const header =
+        '<div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0">Users</h6><button class="btn btn-sm btn-success" id="btn-add-user">Add User</button></div>';
+
       const escapeHtml = (text) => {
         const div = document.createElement("div");
         div.textContent = text;
@@ -372,13 +391,23 @@
             <td>${escapeHtml(String(u.email || ""))}</td>
             <td>${escapeHtml(String(u.role || ""))}</td>
             <td>
-              <select class="form-select form-select-sm" data-status-email="${escapeHtml(String(u.email || ""))}">
-                <option value="Active" ${String(u.status || "Active") === "Active" ? "selected" : ""}>Active</option>
-                <option value="Inactive" ${String(u.status || "Active") === "Inactive" ? "selected" : ""}>Inactive</option>
+              <select class="form-select form-select-sm" data-status-email="${escapeHtml(
+                String(u.email || "")
+              )}">
+                <option value="Active" ${
+                  String(u.status || "Active") === "Active" ? "selected" : ""
+                }>Active</option>
+                <option value="Inactive" ${
+                  String(u.status || "Active") === "Inactive" ? "selected" : ""
+                }>Inactive</option>
               </select>
             </td>
-            <td><input class="form-control form-control-sm" value="${escapeHtml(String((u.allowed_pages || []).join(", ")))}" data-pages-email="${escapeHtml(String(u.email || ""))}"></td>
-            <td><button class="btn btn-sm btn-primary" data-save="${escapeHtml(String(u.email || ""))}">Save</button></td>
+            <td><input class="form-control form-control-sm" value="${escapeHtml(
+              String((u.allowed_pages || []).join(", "))
+            )}" data-pages-email="${escapeHtml(String(u.email || ""))}"></td>
+            <td><button class="btn btn-sm btn-primary" data-save="${escapeHtml(
+              String(u.email || "")
+            )}">Save</button></td>
           </tr>`;
         }),
         "</tbody></table></div>",
@@ -393,9 +422,12 @@
           const email = btn.getAttribute("data-save");
           const pagesInput = root.querySelector(`input[data-pages-email="${email}"]`);
           const statusSelect = root.querySelector(`select[data-status-email="${email}"]`);
-          const pages = (pagesInput.value || "").split(",").map((x) => x.trim()).filter(Boolean);
+          const pages = (pagesInput.value || "")
+            .split(",")
+            .map((x) => x.trim())
+            .filter(Boolean);
           const status = statusSelect.value;
-          
+
           const originalText = btn.textContent;
           btn.disabled = true;
           btn.textContent = "Saving...";
@@ -407,7 +439,7 @@
               alert(res1?.message || "Save pages failed");
               return;
             }
-            
+
             apiCall("admin/setUserStatus", { email, status }).then((res2) => {
               btn.disabled = false;
               if (!res2?.ok) {
@@ -504,16 +536,29 @@
 
     apiCall("profile/get").then((res) => {
       if (!res?.ok) {
-        modalBody.innerHTML = `<div class="text-danger">Error loading profile: ${res?.message || "Unknown error"}</div>`;
+        modalBody.innerHTML = `<div class="text-danger">Error loading profile: ${
+          res?.message || "Unknown error"
+        }</div>`;
         return;
       }
 
       const profile = res.profile || {};
       const fields = [
-        "employee_id", "national_id", "scs_id", "dob", "gender",
-        "job_title", "Specialty", "network_id", "supervisor_id",
-        "fullname_ar", "fullname_en", "facilitiy_id",
-        "phone", "address", "status", "comments"
+        "employee_id",
+        "national_id",
+        "scfhs_id",
+        "dob",
+        "gender",
+        "job_title",
+        "specialty",
+        "network_id",
+        "supervisor_id",
+        "fullname_ar",
+        "fullname_en",
+        "facility_id",
+        "phone",
+        "address",
+        "comments",
       ];
 
       const escapeHtml = (text) => {
@@ -530,11 +575,18 @@
       const form = fields
         .map(
           (name) =>
-            `<div class="mb-2"><label class="form-label">${escapeHtml(name)}</label><input class="form-control form-control-sm" id="prof-modal-${name}" value="${escapeHtml(String(profile[name] || ""))}"></div>`
+            `<div class="mb-2"><label class="form-label">${escapeHtml(
+              name
+            )}</label><input class="form-control form-control-sm" id="prof-modal-${name}" value="${escapeHtml(
+              String(profile[name] || "")
+            )}"></div>`
         )
         .join("");
 
-      modalBody.innerHTML = warningMsg + form + '<div class="text-danger small mt-2" id="profile-modal-error" style="display:none"></div>';
+      modalBody.innerHTML =
+        warningMsg +
+        form +
+        '<div class="text-danger small mt-2" id="profile-modal-error" style="display:none"></div>';
       saveBtn.style.display = "";
 
       const newSaveBtn = saveBtn.cloneNode(true);
@@ -628,7 +680,7 @@
       root.innerHTML = `<div class="text-danger">${errorMsg}</div>`;
       return;
     }
-    
+
     const allCols = data.columns || [];
     const rows = data.rows || [];
     const cols = allCols.filter((c) => c !== "order_id" && c !== "issue_id");
@@ -651,11 +703,11 @@
       ),
       "</tbody></table></div>",
     ].join("");
-    
+
     root.innerHTML = table;
-    
+
     el("btn-add-record")?.addEventListener("click", () => openCreateForm());
-    
+
     root.querySelectorAll("tbody tr").forEach((tr, idx) => {
       tr.addEventListener("click", () => openRowDetail(rows[idx], allCols));
     });
@@ -769,7 +821,9 @@
           <div class="card mb-2">
             <div class="card-body p-2">
               <div class="small text-muted mb-1">
-                <strong>${escapeHtml(c.created_by || "Unknown")}</strong> • ${escapeHtml(c.created_at || "")}
+                <strong>${escapeHtml(c.created_by || "Unknown")}</strong> • ${escapeHtml(
+            c.created_at || ""
+          )}
               </div>
               <div>${escapeHtml(c.comment || "")}</div>
             </div>
@@ -810,7 +864,7 @@
     const label = el("formModalLabel");
     const form = el("generic-form");
     label.textContent = `Create ${state.currentPage}`;
-    
+
     showLoading();
     apiCall("formMeta", { table: state.currentPage }).then((res) => {
       hideLoading();
@@ -818,12 +872,12 @@
         alert(res?.message || "Failed to load form");
         return;
       }
-      
+
       form.innerHTML = res.fields.map(renderField).join("");
-      
+
       const saveBtn = el("btn-save-form");
       saveBtn.onclick = () => submitCreate(res.fields);
-      
+
       const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
       bsModal.show();
     });
@@ -832,11 +886,17 @@
   function renderField(f) {
     if (f.readonly) return "";
     if (f.type === "select") {
-      return `<div class="mb-3"><label class="form-label">${f.label}</label><select class="form-select" data-field="${f.name}">${(f.options || [])
+      return `<div class="mb-3"><label class="form-label">${
+        f.label
+      }</label><select class="form-select" data-field="${f.name}">${(f.options || [])
         .map((o) => `<option value="${o.value}">${o.label}</option>`)
         .join("")}</select></div>`;
     }
-    return `<div class="mb-3"><label class="form-label">${f.label}</label><input class="form-control" data-field="${f.name}" type="${f.inputType || "text"}" /></div>`;
+    return `<div class="mb-3"><label class="form-label">${
+      f.label
+    }</label><input class="form-control" data-field="${f.name}" type="${
+      f.inputType || "text"
+    }" /></div>`;
   }
 
   function submitCreate(fields) {
@@ -873,9 +933,11 @@
 
     pageContent.innerHTML = '<div class="text-muted">Refreshing...</div>';
 
-    apiCall("list", { table: state.currentPage, page: 1, pageSize: 25, filters: {} }).then((res) => {
-      renderTable(res);
-    });
+    apiCall("list", { table: state.currentPage, page: 1, pageSize: 25, filters: {} }).then(
+      (res) => {
+        renderTable(res);
+      }
+    );
   }
 
   function showLogin() {
@@ -1000,4 +1062,3 @@
 
   window.addEventListener("load", init);
 })();
-

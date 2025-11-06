@@ -203,12 +203,12 @@ async function migrateProfiles() {
         profile.dob || null,
         profile.gender || null,
         profile.job_title || null,
-        profile.Specialty || null,
+        profile.specialty || null,
         networkId,
         supervisorId,
         profile.fullname_ar || null,
         profile.fullname_en || null,
-        profile.facilitiy_id || null,
+        profile.facility_id || null,
         profile.phone || null,
         profile.address || null,
         profile.comments || null
@@ -354,7 +354,7 @@ async function migrateOrders() {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       `, [
         order.warehouse_id || null,
-        order.relase_number || null,
+        order.release_number || null,
         order.order_date || null,
         supplierId,
         order.Status || 'Waiting Supplier',
@@ -416,7 +416,7 @@ async function migrateIssues() {
       `, [
         deviceId,
         issue.malfunctioned_date || null,
-        issue.malfunction_discreption || null,
+        issue.malfunction_description || null,
         createdBy,
         issue.created_at || new Date(),
         issue.status || 'Disorder',

@@ -2,7 +2,7 @@
   {
     "order_id": "1",
     "warehouse_id": "1",
-    "relase_number": "1234",
+    "release_number": "1234",
     "order_date": "03/02/2025",
     "supplier_id": "1",
     "comments": "New Order",
