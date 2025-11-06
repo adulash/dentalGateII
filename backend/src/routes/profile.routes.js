@@ -61,6 +61,14 @@ router.post('/upsert', async (req, res) => {
       return res.json({ ok: false, message: 'Profile data is required' });
     }
 
+    // Sanitize data: convert empty strings to null for DATE/INTEGER fields
+    const sanitizedData = { ...data };
+    ['dob', 'network_id', 'supervisor_id'].forEach(field => {
+      if (sanitizedData[field] === '') {
+        sanitizedData[field] = null;
+      }
+    });
+
     // Check if profile exists
     const existing = await query(
       'SELECT id FROM profiles WHERE user_id = $1',
@@ -69,8 +77,8 @@ router.post('/upsert', async (req, res) => {
 
     if (existing.rows.length === 0) {
       // Insert new profile
-      const keys = ['user_id', ...Object.keys(data)];
-      const values = [req.user.userId, ...Object.values(data)];
+      const keys = ['user_id', ...Object.keys(sanitizedData)];
+      const values = [req.user.userId, ...Object.values(sanitizedData)];
       const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
 
       const insertQuery = `
@@ -83,8 +91,8 @@ router.post('/upsert', async (req, res) => {
       return res.json({ ok: true, profile: result.rows[0] });
     } else {
       // Update existing profile
-      const keys = Object.keys(data);
-      const values = Object.values(data);
+      const keys = Object.keys(sanitizedData);
+      const values = Object.values(sanitizedData);
       const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
 
       const updateQuery = `
