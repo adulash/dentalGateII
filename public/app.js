@@ -216,7 +216,7 @@
     if (!nav) return;
     nav.innerHTML = "";
     // Filter out "Profile" from sidebar (accessible via email click)
-    const pages = (state.pages || []).slice().filter(p => p !== "Profile");
+    const pages = (state.pages || []).slice().filter((p) => p !== "Profile");
     if (state.user && String(state.user.role).toLowerCase() === "admin") {
       pages.push("Admin");
     }
