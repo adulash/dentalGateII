@@ -1,4 +1,4 @@
-// DentalGate II - Complete PostgreSQL Backend Frontend
+// CorpGate - Complete PostgreSQL Backend Frontend
 
 (function () {
   const state = {
@@ -122,7 +122,9 @@
           state.pages = res.pages || [];
           showDashboard();
           buildNav();
-          navigate(state.pages[0] || "Profile");
+          // Navigate to first allowed page (not Profile)
+          const firstPage = state.pages[0];
+          if (firstPage) navigate(firstPage);
         } else {
           showLogin();
         }
@@ -175,12 +177,15 @@
 
         buildNav();
 
-        const firstPage = state.pages?.[0] || "Profile";
-        setTimeout(() => {
-          if (state.currentPage !== firstPage) {
-            navigate(firstPage);
-          }
-        }, 100);
+        // Navigate to first allowed page (not Profile)
+        const firstPage = state.pages?.[0];
+        if (firstPage) {
+          setTimeout(() => {
+            if (state.currentPage !== firstPage) {
+              navigate(firstPage);
+            }
+          }, 100);
+        }
       } catch (error) {
         hideLoading();
         console.error("Login error:", error);
@@ -210,7 +215,8 @@
     const nav = el("nav-pages");
     if (!nav) return;
     nav.innerHTML = "";
-    const pages = (state.pages || []).slice();
+    // Filter out "Profile" from sidebar (accessible via email click)
+    const pages = (state.pages || []).slice().filter(p => p !== "Profile");
     if (state.user && String(state.user.role).toLowerCase() === "admin") {
       pages.push("Admin");
     }
@@ -380,7 +386,6 @@
         const fields = [
           "employee_id",
           "national_id",
-          "scfhs_id",
           "dob",
           "gender",
           "job_title",
@@ -701,7 +706,6 @@
         const fields = [
           "employee_id",
           "national_id",
-          "scfhs_id",
           "dob",
           "gender",
           "job_title",

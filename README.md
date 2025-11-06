@@ -1,6 +1,6 @@
-# DentalGate II - PostgreSQL + Express Backend
+# CorpGate - PostgreSQL + Express Backend
 
-Modern web application for dental clinic management with PostgreSQL database and Express.js backend. Designed for easy deployment on VPS using Coolify or manual Docker deployment.
+Modern web application for corporate management with PostgreSQL database and Express.js backend. Designed for easy deployment on VPS using Coolify or manual Docker deployment.
 
 ## 🚀 Features
 
@@ -36,15 +36,15 @@ Modern web application for dental clinic management with PostgreSQL database and
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/yourusername/dentalGateII.git
-cd dentalGateII
+git clone https://github.com/yourusername/corpgate.git
+cd corpgate
 
 # 2. Install dependencies
 npm install
 cd backend && npm install && cd ..
 
 # 3. Setup PostgreSQL database
-createdb dentalgate
+createdb corpgate
 
 # 4. Configure environment
 cp backend/.env.example backend/.env

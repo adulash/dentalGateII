@@ -1,7 +1,7 @@
 {
-  "name": "dentalgate-backend",
+  "name": "corpgate-backend",
   "version": "2.0.0",
-  "description": "DentalGate II - PostgreSQL Backend",
+  "description": "CorpGate - PostgreSQL Backend",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

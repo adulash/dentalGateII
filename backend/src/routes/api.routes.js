@@ -210,6 +210,9 @@ router.post('/formMeta', async (req, res) => {
       .filter(col => {
         // Exclude auto-generated and system fields
         const excluded = ['id', 'created_at', 'updated_at', 'created_by', 'solved_by', 'solved_at', 'waiting_days'];
+        // For Issues, keep device_id; For Orders, keep supplier_id
+        if (table === 'Issues' && col.column_name === 'device_id') return true;
+        if (table === 'Orders' && col.column_name === 'supplier_id') return true;
         return !excluded.includes(col.column_name) && !col.column_name.endsWith('_id');
       })
       .map(col => ({
@@ -221,7 +224,7 @@ router.post('/formMeta', async (req, res) => {
         readonly: false,
       }));
 
-    // Add select options for status fields
+    // Add select options for status fields and foreign keys
     if (table === 'Issues') {
       const statusField = fields.find(f => f.name === 'status');
       if (statusField) {
@@ -232,6 +235,17 @@ router.post('/formMeta', async (req, res) => {
         ];
         statusField.defaultValue = 'Disorder';
       }
+      
+      // Add device dropdown
+      const deviceField = fields.find(f => f.name === 'device_id');
+      if (deviceField) {
+        const devicesResult = await query('SELECT id, device_name FROM devices ORDER BY device_name');
+        deviceField.type = 'select';
+        deviceField.options = devicesResult.rows.map(d => ({
+          value: d.id,
+          label: d.device_name || `Device ${d.id}`
+        }));
+      }
     } else if (table === 'Orders') {
       const statusField = fields.find(f => f.name === 'status');
       if (statusField) {
@@ -241,6 +255,17 @@ router.post('/formMeta', async (req, res) => {
           { value: 'Delivered', label: 'Delivered' },
         ];
         statusField.defaultValue = 'Waiting Supplier';
+      }
+      
+      // Add supplier dropdown
+      const supplierField = fields.find(f => f.name === 'supplier_id');
+      if (supplierField) {
+        const suppliersResult = await query('SELECT id, supplier_name FROM suppliers ORDER BY supplier_name');
+        supplierField.type = 'select';
+        supplierField.options = suppliersResult.rows.map(s => ({
+          value: s.id,
+          label: s.supplier_name || `Supplier ${s.id}`
+        }));
       }
     }
 
