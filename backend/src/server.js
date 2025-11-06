@@ -37,10 +37,18 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) 
   : ['http://localhost:3000', 'http://localhost:5000'];
 
+// Check if wildcard is enabled
+const allowAllOrigins = allowedOrigins.includes('*');
+
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
+    
+    // If wildcard enabled, allow all
+    if (allowAllOrigins) {
+      return callback(null, true);
+    }
     
     // In development, allow all origins
     if (process.env.NODE_ENV === 'development') {
