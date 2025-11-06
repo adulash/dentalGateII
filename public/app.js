@@ -351,8 +351,13 @@
           saveBtn.textContent = originalText;
 
           if (!res || !res.ok) {
-            errorEl.textContent = res?.message || "Save failed";
+            // Show detailed error for debugging
+            const errorMsg = res?.message || "Save failed";
+            const errorDetail = res?.error ? ` - ${res.error}` : '';
+            const errorDbDetail = res?.detail ? ` (${res.detail})` : '';
+            errorEl.textContent = errorMsg + errorDetail + errorDbDetail;
             errorEl.style.display = "";
+            console.error('Profile save error:', res);
             return;
           }
 
@@ -610,8 +615,13 @@
           newSaveBtn.textContent = originalText;
 
           if (!saveRes?.ok) {
-            errorEl.textContent = saveRes?.message || "Save failed";
+            // Show detailed error for debugging
+            const errorMsg = saveRes?.message || "Save failed";
+            const errorDetail = saveRes?.error ? ` - ${saveRes.error}` : '';
+            const errorDbDetail = saveRes?.detail ? ` (${saveRes.detail})` : '';
+            errorEl.textContent = errorMsg + errorDetail + errorDbDetail;
             errorEl.style.display = "";
+            console.error('Profile save error:', saveRes);
             return;
           }
 

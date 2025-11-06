@@ -107,7 +107,15 @@ router.post('/upsert', async (req, res) => {
     }
   } catch (error) {
     console.error('Upsert profile error:', error);
-    return res.json({ ok: false, message: 'Failed to save profile' });
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    // Return detailed error for debugging
+    return res.json({ 
+      ok: false, 
+      message: 'Failed to save profile', 
+      error: error.message,
+      detail: error.detail || error.toString()
+    });
   }
 });
 
