@@ -34,7 +34,7 @@ app.use(helmet({
 
 // CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',') 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) 
   : ['http://localhost:3000', 'http://localhost:5000'];
 
 app.use(cors({
@@ -42,9 +42,24 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+    // In development, allow all origins
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    // Check if origin matches allowed origins
+    const isAllowed = allowedOrigins.some(allowed => {
+      // Remove trailing slashes for comparison
+      const normalizedOrigin = origin.replace(/\/$/, '');
+      const normalizedAllowed = allowed.replace(/\/$/, '');
+      return normalizedOrigin === normalizedAllowed;
+    });
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
+      console.error('CORS blocked origin:', origin);
+      console.error('Allowed origins:', allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },
