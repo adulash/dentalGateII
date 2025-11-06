@@ -1,0 +1,12 @@
+[phases.setup]
+nixPkgs = ["postgresql"]
+
+[phases.install]
+cmds = ["cd backend && npm install --production"]
+
+[start]
+cmd = "cd backend && node src/server.js"
+
+[variables]
+NODE_ENV = "production"
+
