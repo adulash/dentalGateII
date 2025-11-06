@@ -89,11 +89,13 @@ app.use('/api/comments', commentsRoutes);
 app.use('/api', apiRoutes);
 
 // Serve static files from public directory
-app.use(express.static('public'));
+const path = require('path');
+const publicPath = path.join(__dirname, '../../public');
+app.use(express.static(publicPath));
 
 // Catch-all route for SPA
 app.get('*', (req, res) => {
-  res.sendFile('index.html', { root: 'public' });
+  res.sendFile(path.join(publicPath, 'index.html'));
 });
 
 // Error handling middleware
