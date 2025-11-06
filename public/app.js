@@ -236,7 +236,7 @@
     });
     const navUserEmail = el("nav-user-email");
     if (navUserEmail) {
-      navUserEmail.textContent = state.user ? state.user.email : "";
+      navUserEmail.textContent = state.user?.email || "";
     }
     const navUser = el("nav-user");
     if (navUser) {

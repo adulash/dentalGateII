@@ -88,10 +88,10 @@ router.post('/change-password', authMiddleware, async (req, res) => {
 });
 
 /**
- * GET /api/auth/me
+ * POST /api/auth/me
  * Get current user info
  */
-router.get('/me', authMiddleware, async (req, res) => {
+router.post('/me', authMiddleware, async (req, res) => {
   try {
     const result = await query(
       'SELECT id, email, username, role, allowed_pages, status, last_login FROM users WHERE id = $1',
@@ -114,6 +114,7 @@ router.get('/me', authMiddleware, async (req, res) => {
         status: user.status,
         lastLogin: user.last_login,
       },
+      pages: user.allowed_pages || [],
     });
   } catch (error) {
     console.error('Get user error:', error);
