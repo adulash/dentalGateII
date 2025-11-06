@@ -7,18 +7,14 @@ RUN apk add --no-cache dumb-init postgresql-client
 # Create app directory
 WORKDIR /app
 
-# Copy backend package files
-COPY backend/package*.json ./backend/
-
-# Install backend dependencies
-WORKDIR /app/backend
-RUN npm install --production
-
-# Copy application code
-WORKDIR /app
+# Copy all application code first
 COPY backend ./backend
 COPY public ./public
 COPY data ./data
+
+# Install backend dependencies
+WORKDIR /app/backend
+RUN npm install --production && npm cache clean --force
 
 # Set working directory
 WORKDIR /app/backend
