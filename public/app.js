@@ -216,9 +216,9 @@
     }
     Array.from(new Set(pages)).forEach((p) => {
       const li = document.createElement("li");
-      li.className = "nav-item";
+      li.className = "sidebar-menu-item";
       const a = document.createElement("a");
-      a.className = "nav-link";
+      a.className = "sidebar-menu-link";
       a.href = "#";
       a.textContent = p;
       a.addEventListener("click", (e) => {
@@ -228,13 +228,17 @@
       li.appendChild(a);
       nav.appendChild(li);
     });
+    const navUserEmail = el("nav-user-email");
+    if (navUserEmail) {
+      navUserEmail.textContent = state.user ? state.user.email : "";
+    }
     const navUser = el("nav-user");
     if (navUser) {
-      navUser.textContent = state.user ? state.user.email : "";
       navUser.style.cursor = state.user ? "pointer" : "default";
-      navUser.style.textDecoration = state.user ? "underline" : "none";
       if (state.user) {
         navUser.onclick = () => openProfileModal();
+      } else {
+        navUser.onclick = null;
       }
     }
     const btnLogout = el("btn-logout");
@@ -1286,9 +1290,9 @@
     const btn = el("btn-toggle-sidebar");
     const sidebar = el("sidebar");
     const mainContent = el("main-content");
-    
+
     if (!btn) return;
-    
+
     btn.addEventListener("click", function () {
       if (sidebar) sidebar.classList.toggle("collapsed");
       if (mainContent) mainContent.classList.toggle("expanded");
