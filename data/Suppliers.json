@@ -1,0 +1,18 @@
+[
+  {
+    "Supplier_ID": "1",
+    "SupplierName": "Erfan Barakat",
+    "phone": "541147478",
+    "Email": "info@Kafodent.com",
+    "email2": "",
+    "email3": ""
+  },
+  {
+    "Supplier_ID": "2",
+    "SupplierName": "Al-Nahdi",
+    "phone": "98765",
+    "Email": "email@gmail.com",
+    "email2": "",
+    "email3": ""
+  }
+]

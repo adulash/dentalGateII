@@ -1,0 +1,34 @@
+[
+  {
+    "Username": "aalshehri103",
+    "Email": "aalshehri103@moh.gov.sa",
+    "Password Hash": "360010f157844315$x9PBGG1tlpI21ml2AY+JERVL+laK/txxI7vwyumXKOM=",
+    "Role": "admin",
+    "Allowed Pages": "Orders",
+    "Status": "Facilities"
+  },
+  {
+    "Username": "user1",
+    "Email": "user@gmail.com",
+    "Password Hash": "360010f157844315$x9PBGG1tlpI21ml2AY+JERVL+laK/txxI7vwyumXKOM=",
+    "Role": "user",
+    "Allowed Pages": "Orders",
+    "Status": "Active"
+  },
+  {
+    "Username": "",
+    "Email": "test1@example.com",
+    "Password Hash": "0b6b52e4c3264bc8$aEm6K3rG/qtc93qA7DhFjELY3CISbJuryWMXxbJCXA4=",
+    "Role": "User",
+    "Allowed Pages": "",
+    "Status": "Inactive"
+  },
+  {
+    "Username": "",
+    "Email": "test22@example.com",
+    "Password Hash": "54f66cb6f8ef4a90$9490+x0tIGNzsOO5zYhmWPz23op5ODy7i+WOzDVQ6Qw=",
+    "Role": "User",
+    "Allowed Pages": "Issues",
+    "Status": "Active"
+  }
+]

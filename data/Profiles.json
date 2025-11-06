@@ -1,0 +1,40 @@
+[
+  {
+    "user_id": "aalshehri103@moh.gov.sa",
+    "employee_id": "7246345",
+    "national_id": "1062762586",
+    "scfhs_id": "34567",
+    "dob": "",
+    "gender": "male",
+    "job_title": "",
+    "Specialty": "",
+    "network_id": "",
+    "supervisor_id": "",
+    "fullname_ar": "",
+    "fullname_en": "",
+    "facilitiy_id": "",
+    "phone": "",
+    "address": "",
+    "status": "",
+    "comments": ""
+  },
+  {
+    "user_id": "user@gmail.com",
+    "employee_id": "1234",
+    "national_id": "234",
+    "scfhs_id": "1234",
+    "dob": "",
+    "gender": "",
+    "job_title": "",
+    "Specialty": "",
+    "network_id": "",
+    "supervisor_id": "",
+    "fullname_ar": "",
+    "fullname_en": "",
+    "facilitiy_id": "",
+    "phone": "",
+    "address": "",
+    "status": "",
+    "comments": ""
+  }
+]

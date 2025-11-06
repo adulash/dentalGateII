@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: dentalgate-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dentalgate}
+      POSTGRES_USER: ${POSTGRES_USER:-dentalgate}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dentalgate}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dentalgate-network
+
+  # Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dentalgate-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-dentalgate}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-dentalgate}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-7d}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      - ./data:/app/data:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      start_period: 40s
+      retries: 3
+    networks:
+      - dentalgate-network
+
+  # pgAdmin (optional - for database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: dentalgate-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@dentalgate.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      - postgres
+    networks:
+      - dentalgate-network
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  dentalgate-network:
+    driver: bridge
+

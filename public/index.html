@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentalGateII - PostgreSQL Backend</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --sneat-primary: #696cff;
+      --sneat-secondary: #8592a3;
+      --sneat-success: #71dd37;
+      --sneat-danger: #ff3e1d;
+      --sneat-warning: #ffab00;
+      --sneat-info: #03c3ec;
+      --sneat-dark: #233446;
+      --sneat-sidebar-bg: #fff;
+      --sneat-sidebar-width: 260px;
+      --sneat-navbar-height: 60px;
+    }
+    body { 
+      font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+      background: #f5f5f9;
+      font-size: 0.9375rem;
+    }
+    /* Navbar */
+    .navbar-top {
+      background: #fff;
+      height: var(--sneat-navbar-height);
+      border-bottom: 1px solid #e7e7e7;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 0 1.5rem;
+      box-shadow: 0 2px 6px 0 rgba(67,89,113,.12);
+    }
+    .navbar-brand {
+      color: var(--sneat-primary) !important;
+      font-weight: 700;
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+    }
+    .navbar-brand i { font-size: 1.5rem; margin-right: 0.5rem; }
+    /* Sidebar */
+    #sidebar {
+      position: fixed;
+      top: var(--sneat-navbar-height);
+      left: 0;
+      width: var(--sneat-sidebar-width);
+      height: calc(100vh - var(--sneat-navbar-height));
+      background: var(--sneat-sidebar-bg);
+      border-right: 1px solid #e7e7e7;
+      overflow-y: auto;
+      transition: all 0.3s;
+      z-index: 999;
+      box-shadow: 0 2px 6px 0 rgba(67,89,113,.12);
+    }
+    #sidebar.collapsed {
+      margin-left: calc(-1 * var(--sneat-sidebar-width));
+    }
+    .sidebar-menu {
+      list-style: none;
+      padding: 1rem 0;
+      margin: 0;
+    }
+    .sidebar-menu-item {
+      padding: 0;
+    }
+    .sidebar-menu-link {
+      display: flex;
+      align-items: center;
+      padding: 0.625rem 1.5rem;
+      color: #697a8d;
+      text-decoration: none;
+      transition: all 0.2s;
+      font-weight: 400;
+    }
+    .sidebar-menu-link:hover {
+      background: #f5f5f9;
+      color: var(--sneat-primary);
+    }
+    .sidebar-menu-link.active {
+      background: rgba(105,108,255,.08);
+      color: var(--sneat-primary);
+      font-weight: 500;
+    }
+    .sidebar-menu-link i {
+      font-size: 1.375rem;
+      margin-right: 0.75rem;
+      width: 1.5rem;
+      text-align: center;
+    }
+    /* Main Content */
+    #main-content {
+      margin-left: var(--sneat-sidebar-width);
+      margin-top: var(--sneat-navbar-height);
+      padding: 1.5rem;
+      transition: margin-left 0.3s;
+      min-height: calc(100vh - var(--sneat-navbar-height));
+    }
+    #main-content.expanded {
+      margin-left: 0;
+    }
+    /* Cards */
+    .card {
+      border: none;
+      box-shadow: 0 2px 6px 0 rgba(67,89,113,.12);
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      transition: transform 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px 0 rgba(67,89,113,.2);
+    }
+    .stat-icon {
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.375rem;
+      font-size: 1.5rem;
+    }
+    /* Loading */
+    #loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+    .spinner-border { width: 3rem; height: 3rem; }
+    /* Login Views */
+    #view-login { max-width: 420px; margin: 100px auto; }
+    #view-dashboard { display: none; }
+    #view-password-setup { display: none; max-width: 420px; margin: 100px auto; }
+    #view-waiting-approval { display: none; max-width: 520px; margin: 100px auto; }
+    .login-card, .setup-card { 
+      box-shadow: 0 2px 20px 0 rgba(67,89,113,.12);
+      border-radius: 0.5rem;
+    }
+    /* Buttons */
+    .btn-primary {
+      background: var(--sneat-primary);
+      border-color: var(--sneat-primary);
+    }
+    .btn-primary:hover {
+      background: #5f61e6;
+      border-color: #5f61e6;
+    }
+    .btn-success {
+      background: var(--sneat-success);
+      border-color: var(--sneat-success);
+    }
+    /* User Dropdown */
+    .user-dropdown {
+      color: #697a8d;
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      transition: all 0.2s;
+    }
+    .user-dropdown:hover {
+      background: #f5f5f9;
+    }
+    /* Charts */
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+    /* Table Styles */
+    .table-responsive {
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+    .table {
+      margin-bottom: 0;
+    }
+    .table thead th {
+      background: #f5f5f9;
+      color: #566a7f;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.4px;
+      border-bottom: 2px solid #e7e7e7;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div id="loading-overlay">
+    <div class="spinner-border text-light" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Login View -->
+  <div id="view-login">
+    <div class="card login-card">
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <i class='bx bxs-clinic' style="font-size: 3rem; color: var(--sneat-primary);"></i>
+          <h4 class="mt-2" style="color: var(--sneat-primary); font-weight: 700;">DentalGate II</h4>
+          <p class="text-muted small">PostgreSQL Backend</p>
+        </div>
+        <form id="login-form">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            <input type="email" class="form-control" id="login-email" required placeholder="Enter your email">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Password</label>
+            <input type="password" class="form-control" id="login-password" required placeholder="Enter your password">
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class='bx bx-log-in me-2'></i>Sign In
+          </button>
+          <div class="text-danger small mt-2" id="login-error" style="display:none"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Setup View -->
+  <div id="view-password-setup">
+    <div class="card setup-card">
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <i class='bx bx-lock-open' style="font-size: 3rem; color: var(--sneat-warning);"></i>
+          <h4 class="mt-2" style="font-weight: 700;">Set Your Password</h4>
+          <p class="text-muted small">Welcome! Please set a secure password to activate your account.</p>
+        </div>
+        <form id="password-setup-form">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">New Password</label>
+            <input type="password" class="form-control" id="new-password" required minlength="4" placeholder="Enter new password">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Confirm Password</label>
+            <input type="password" class="form-control" id="confirm-password" required minlength="4" placeholder="Confirm your password">
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class='bx bx-check me-2'></i>Set Password
+          </button>
+          <div class="text-danger small mt-2" id="password-setup-error" style="display:none"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Waiting for Approval View -->
+  <div id="view-waiting-approval">
+    <div class="card">
+      <div class="card-body text-center p-4">
+        <i class='bx bx-time-five' style="font-size: 3rem; color: var(--sneat-info);"></i>
+        <h4 class="mt-3 mb-3">Password Set Successfully</h4>
+        <p class="text-muted">Your password has been set. Please wait for an administrator to activate your account.</p>
+        <button class="btn btn-secondary mt-3" id="btn-back-to-login">
+          <i class='bx bx-arrow-back me-2'></i>Back to Login
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard View -->
+  <div id="view-dashboard">
+    <!-- Top Navbar -->
+    <nav class="navbar-top d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <button class="btn btn-link text-secondary me-2" id="btn-toggle-sidebar">
+          <i class='bx bx-menu' style="font-size: 1.5rem;"></i>
+        </button>
+        <a class="navbar-brand mb-0" href="#">
+          <i class='bx bxs-clinic'></i>
+          DentalGate II
+        </a>
+      </div>
+      <div class="d-flex align-items-center">
+        <div class="user-dropdown d-flex align-items-center" id="nav-user">
+          <i class='bx bx-user-circle' style="font-size: 1.5rem; margin-right: 0.5rem;"></i>
+          <span id="nav-user-email"></span>
+        </div>
+        <button class="btn btn-sm btn-outline-danger ms-3" id="btn-logout">
+          <i class='bx bx-log-out me-1'></i>Logout
+        </button>
+      </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <ul class="sidebar-menu" id="sidebar-menu"></ul>
+    </aside>
+
+    <!-- Main Content -->
+    <div id="main-content">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0" id="page-title">Dashboard</h4>
+      </div>
+      <div id="page-content"></div>
+    </div>
+  </div>
+
+  <!-- Modals (same as before) -->
+  <!-- Form Modal -->
+  <div class="modal fade" id="formModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="formModalLabel">Form</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="generic-form"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="btn-save-form">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="detailModalLabel">Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="detail-content"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div class="modal fade" id="profileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">My Profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="profile-modal-body">Loading...</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="btn-save-profile-modal">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add New User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="add-user-form">
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" id="new-user-email" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Role</label>
+              <input type="text" class="form-control" id="new-user-role" required>
+            </div>
+          </form>
+          <div class="alert alert-success" id="add-user-result" style="display:none"></div>
+          <div class="text-danger small" id="add-user-error" style="display:none"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="btn-submit-user">Create User</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <!-- Config first -->
+  <script src="config.js"></script>
+  
+  <!-- Bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/js/chart.umd.min.js"></script>
+  
+  <!-- App Script (use app-new.js for PostgreSQL backend) -->
+  <script src="app-new.js"></script>
+</body>
+</html>
+

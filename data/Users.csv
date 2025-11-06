@@ -1,0 +1,5 @@
+Username,Email,Password Hash,Role,Allowed Pages,Status
+aalshehri103,aalshehri103@moh.gov.sa,360010f157844315$x9PBGG1tlpI21ml2AY+JERVL+laK/txxI7vwyumXKOM=,admin,"Orders, Facilities, Networks, Issues, Comments, Sectors, Roles, Pages, Warehouse, Suppliers, Devices",Active
+user1,user@gmail.com,360010f157844315$x9PBGG1tlpI21ml2AY+JERVL+laK/txxI7vwyumXKOM=,user,Orders,Active
+,test1@example.com,0b6b52e4c3264bc8$aEm6K3rG/qtc93qA7DhFjELY3CISbJuryWMXxbJCXA4=,User,,Inactive
+,test22@example.com,54f66cb6f8ef4a90$9490+x0tIGNzsOO5zYhmWPz23op5ODy7i+WOzDVQ6Qw=,User,Issues,Active

@@ -1,0 +1,16 @@
+# Place your exported JSON files here
+# 
+# Expected files:
+# - Users.json
+# - Pages.json
+# - Facilities.json
+# - Networks.json
+# - Warehouse.json
+# - Sectors.json
+# - Suppliers.json
+# - Orders.json
+# - Devices.json
+# - Issues.json
+# - Comments.json
+# - Profiles.json
+

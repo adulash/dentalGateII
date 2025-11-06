@@ -1,0 +1,18 @@
+[
+  {
+    "MOH_ID": "",
+    "FacilityName_Ar": "فرع الشعلة",
+    "FacilityName_En": "Sho'ala Branch",
+    "Email": "Sho'ala @example.com",
+    "Network": "DHN",
+    "Sectors": "Dammam"
+  },
+  {
+    "MOH_ID": "",
+    "FacilityName_Ar": "فرع الكورنيش",
+    "FacilityName_En": "Corniche-Khobar",
+    "Email": "Corniche@example.com",
+    "Network": "KHN",
+    "Sectors": "Khobar"
+  }
+]
