@@ -7,6 +7,47 @@ const { query } = require('../config/db');
 router.use(authMiddleware);
 
 /**
+ * POST /api/profile/getOptions
+ * Get dropdown options for profile form
+ */
+router.post('/getOptions', async (req, res) => {
+  try {
+    // Get networks
+    const networksResult = await query('SELECT id, network_id, network FROM networks ORDER BY network');
+    const networks = networksResult.rows.map(n => ({ 
+      value: n.id, 
+      label: n.network || n.network_id 
+    }));
+
+    // Get facilities
+    const facilitiesResult = await query('SELECT moh_id, facility_name_en, facility_name_ar FROM facilities ORDER BY facility_name_en');
+    const facilities = facilitiesResult.rows.map(f => ({ 
+      value: f.moh_id, 
+      label: f.facility_name_en || f.facility_name_ar || f.moh_id 
+    }));
+
+    // Get supervisors (active users only)
+    const supervisorsResult = await query('SELECT id, email FROM users WHERE status = $1 ORDER BY email', ['Active']);
+    const supervisors = supervisorsResult.rows.map(u => ({ 
+      value: u.id, 
+      label: u.email 
+    }));
+
+    return res.json({ 
+      ok: true, 
+      options: { 
+        networks, 
+        facilities, 
+        supervisors 
+      } 
+    });
+  } catch (error) {
+    console.error('Get profile options error:', error);
+    return res.json({ ok: false, message: 'Failed to get options' });
+  }
+});
+
+/**
  * POST /api/profile/get
  * Get current user's profile
  */
