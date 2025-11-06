@@ -284,126 +284,162 @@
     }
 
     // Fetch both profile and options
-    Promise.all([
-      apiCall("profile/get"),
-      apiCall("profile/getOptions")
-    ]).then(([profileRes, optionsRes]) => {
-      hideLoading();
-      
-      if (!profileRes || !profileRes.ok) {
-        root.innerHTML = `<div class="text-danger">Error loading profile: ${
-          profileRes?.message || "Unknown error"
-        }</div>`;
-        return;
-      }
+    Promise.all([apiCall("profile/get"), apiCall("profile/getOptions")]).then(
+      ([profileRes, optionsRes]) => {
+        hideLoading();
 
-      const profile = profileRes.profile || {};
-      const options = optionsRes?.ok ? optionsRes.options : { networks: [], facilities: [], supervisors: [] };
-
-      const escapeHtml = (text) => {
-        const div = document.createElement("div");
-        div.textContent = text;
-        return div.innerHTML;
-      };
-
-      const renderField = (name, value) => {
-        const label = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        
-        // Dropdown fields
-        if (name === 'network_id') {
-          const opts = options.networks.map(o => 
-            `<option value="${o.value}" ${o.value == value ? 'selected' : ''}>${escapeHtml(o.label)}</option>`
-          ).join('');
-          return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select" id="prof-${name}"><option value="">Select Network</option>${opts}</select></div>`;
+        if (!profileRes || !profileRes.ok) {
+          root.innerHTML = `<div class="text-danger">Error loading profile: ${
+            profileRes?.message || "Unknown error"
+          }</div>`;
+          return;
         }
-        
-        if (name === 'facility_id') {
-          const opts = options.facilities.map(o => 
-            `<option value="${escapeHtml(o.value)}" ${o.value == value ? 'selected' : ''}>${escapeHtml(o.label)}</option>`
-          ).join('');
-          return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select" id="prof-${name}"><option value="">Select Facility</option>${opts}</select></div>`;
-        }
-        
-        if (name === 'supervisor_id') {
-          const opts = options.supervisors.map(o => 
-            `<option value="${o.value}" ${o.value == value ? 'selected' : ''}>${escapeHtml(o.label)}</option>`
-          ).join('');
-          return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select" id="prof-${name}"><option value="">Select Supervisor</option>${opts}</select></div>`;
-        }
-        
-        if (name === 'gender') {
-          return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select" id="prof-${name}">
-            <option value="">Select Gender</option>
-            <option value="male" ${value === 'male' ? 'selected' : ''}>Male</option>
-            <option value="female" ${value === 'female' ? 'selected' : ''}>Female</option>
-          </select></div>`;
-        }
-        
-        if (name === 'dob') {
-          return `<div class="mb-2"><label class="form-label">${label}</label><input type="date" class="form-control" id="prof-${name}" value="${escapeHtml(String(value || ''))}"></div>`;
-        }
-        
-        if (name === 'comments') {
-          return `<div class="mb-2"><label class="form-label">${label}</label><textarea class="form-control" id="prof-${name}" rows="3">${escapeHtml(String(value || ''))}</textarea></div>`;
-        }
-        
-        // Regular text input
-        return `<div class="mb-2"><label class="form-label">${label}</label><input class="form-control" id="prof-${name}" value="${escapeHtml(String(value || ''))}"></div>`;
-      };
 
-      const fields = [
-        "employee_id", "national_id", "scfhs_id", "dob", "gender",
-        "job_title", "specialty", "network_id", "supervisor_id",
-        "fullname_ar", "fullname_en", "facility_id",
-        "phone", "address", "comments"
-      ];
+        const profile = profileRes.profile || {};
+        const options = optionsRes?.ok
+          ? optionsRes.options
+          : { networks: [], facilities: [], supervisors: [] };
 
-      const isIncomplete = fields.some(f => !profile[f]);
-      const warningMsg = isIncomplete
-        ? '<div class="alert alert-warning mb-3">Please complete your profile information.</div>'
-        : "";
+        const escapeHtml = (text) => {
+          const div = document.createElement("div");
+          div.textContent = text;
+          return div.innerHTML;
+        };
 
-      const form = fields.map(name => renderField(name, profile[name])).join("");
+        const renderField = (name, value) => {
+          const label = name.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
-      root.innerHTML = `<div class="card"><div class="card-body"><h6 class="mb-3">My Profile</h6>${warningMsg}${form}<button class="btn btn-primary" id="btn-save-profile">Save</button><div class="text-danger small mt-2" id="profile-error" style="display:none"></div></div></div>`;
-
-      el("btn-save-profile").onclick = () => {
-        const data = {};
-        fields.forEach((n) => {
-          const elem = document.getElementById(`prof-${n}`);
-          data[n] = elem.value || '';
-        });
-        const errorEl = document.getElementById("profile-error");
-        const saveBtn = document.getElementById("btn-save-profile");
-        errorEl.style.display = "none";
-
-        const originalText = saveBtn.textContent;
-        saveBtn.disabled = true;
-        saveBtn.textContent = "Saving...";
-
-        apiCall("profile/upsert", { data }).then((res) => {
-          saveBtn.disabled = false;
-          saveBtn.textContent = originalText;
-
-          if (!res || !res.ok) {
-            const errorMsg = res?.message || "Save failed";
-            const errorDetail = res?.error ? ` - ${res.error}` : "";
-            const errorDbDetail = res?.detail ? ` (${res.detail})` : "";
-            errorEl.textContent = errorMsg + errorDetail + errorDbDetail;
-            errorEl.style.display = "";
-            console.error("Profile save error:", res);
-            return;
+          // Dropdown fields
+          if (name === "network_id") {
+            const opts = options.networks
+              .map(
+                (o) =>
+                  `<option value="${o.value}" ${o.value == value ? "selected" : ""}>${escapeHtml(
+                    o.label
+                  )}</option>`
+              )
+              .join("");
+            return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select" id="prof-${name}"><option value="">Select Network</option>${opts}</select></div>`;
           }
 
-          const successMsg = document.createElement("div");
-          successMsg.className = "alert alert-success alert-dismissible fade show mt-2";
-          successMsg.innerHTML =
-            '<strong>Saved!</strong> Profile updated successfully. <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-          errorEl.parentElement.insertBefore(successMsg, errorEl);
-          setTimeout(() => successMsg.remove(), 3000);
-        });
-      };
-    });
+          if (name === "facility_id") {
+            const opts = options.facilities
+              .map(
+                (o) =>
+                  `<option value="${escapeHtml(o.value)}" ${
+                    o.value == value ? "selected" : ""
+                  }>${escapeHtml(o.label)}</option>`
+              )
+              .join("");
+            return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select" id="prof-${name}"><option value="">Select Facility</option>${opts}</select></div>`;
+          }
+
+          if (name === "supervisor_id") {
+            const opts = options.supervisors
+              .map(
+                (o) =>
+                  `<option value="${o.value}" ${o.value == value ? "selected" : ""}>${escapeHtml(
+                    o.label
+                  )}</option>`
+              )
+              .join("");
+            return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select" id="prof-${name}"><option value="">Select Supervisor</option>${opts}</select></div>`;
+          }
+
+          if (name === "gender") {
+            return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select" id="prof-${name}">
+            <option value="">Select Gender</option>
+            <option value="male" ${value === "male" ? "selected" : ""}>Male</option>
+            <option value="female" ${value === "female" ? "selected" : ""}>Female</option>
+          </select></div>`;
+          }
+
+          if (name === "dob") {
+            return `<div class="mb-2"><label class="form-label">${label}</label><input type="date" class="form-control" id="prof-${name}" value="${escapeHtml(
+              String(value || "")
+            )}"></div>`;
+          }
+
+          if (name === "comments") {
+            return `<div class="mb-2"><label class="form-label">${label}</label><textarea class="form-control" id="prof-${name}" rows="3">${escapeHtml(
+              String(value || "")
+            )}</textarea></div>`;
+          }
+
+          // Regular text input
+          return `<div class="mb-2"><label class="form-label">${label}</label><input class="form-control" id="prof-${name}" value="${escapeHtml(
+            String(value || "")
+          )}"></div>`;
+        };
+
+        const fields = [
+          "employee_id",
+          "national_id",
+          "scfhs_id",
+          "dob",
+          "gender",
+          "job_title",
+          "specialty",
+          "network_id",
+          "supervisor_id",
+          "fullname_ar",
+          "fullname_en",
+          "facility_id",
+          "phone",
+          "address",
+          "comments",
+        ];
+
+        const isIncomplete = fields.some((f) => !profile[f]);
+        const warningMsg = isIncomplete
+          ? '<div class="alert alert-warning mb-3">Please complete your profile information.</div>'
+          : "";
+
+        const form = fields.map((name) => renderField(name, profile[name])).join("");
+
+        root.innerHTML = `<div class="card"><div class="card-body"><h6 class="mb-3">My Profile</h6>${warningMsg}${form}<button class="btn btn-primary" id="btn-save-profile">Save</button><div class="text-danger small mt-2" id="profile-error" style="display:none"></div></div></div>`;
+
+        el("btn-save-profile").onclick = () => {
+          const data = {};
+          fields.forEach((n) => {
+            const elem = document.getElementById(`prof-${n}`);
+            data[n] = elem.value || "";
+          });
+          const errorEl = document.getElementById("profile-error");
+          const saveBtn = document.getElementById("btn-save-profile");
+          errorEl.style.display = "none";
+
+          const originalText = saveBtn.textContent;
+          saveBtn.disabled = true;
+          saveBtn.textContent = "Saving...";
+
+          apiCall("profile/upsert", { data }).then((res) => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalText;
+
+            if (!res || !res.ok) {
+              const errorMsg = res?.message || "Save failed";
+              const errorDetail = res?.error ? ` - ${res.error}` : "";
+              const errorDbDetail = res?.detail ? ` (${res.detail})` : "";
+              errorEl.textContent = errorMsg + errorDetail + errorDbDetail;
+              errorEl.style.display = "";
+              console.error("Profile save error:", res);
+              return;
+            }
+
+            const successMsg = document.createElement("div");
+            successMsg.className = "alert alert-success alert-dismissible fade show mt-2";
+            successMsg.innerHTML =
+              '<strong>Saved!</strong> Profile updated successfully. <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+            errorEl.parentElement.insertBefore(successMsg, errorEl);
+            setTimeout(() => successMsg.remove(), 3000);
+
+            // Refresh navbar to show updated info
+            buildNav();
+          });
+        };
+      }
+    );
   }
 
   function renderAdmin() {
@@ -573,131 +609,245 @@
     const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
     bsModal.show();
 
-    Promise.all([
-      apiCall("profile/get"),
-      apiCall("profile/getOptions")
-    ]).then(([res, optionsRes]) => {
-      if (!res?.ok) {
-        modalBody.innerHTML = `<div class="text-danger">Error loading profile: ${
-          res?.message || "Unknown error"
-        }</div>`;
-        return;
-      }
-
-      const profile = res.profile || {};
-      const options = optionsRes?.ok ? optionsRes.options : { networks: [], facilities: [], supervisors: [] };
-
-      const escapeHtml = (text) => {
-        const div = document.createElement("div");
-        div.textContent = text;
-        return div.innerHTML;
-      };
-
-      const renderModalField = (name, value) => {
-        const label = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        
-        if (name === 'network_id') {
-          const opts = options.networks.map(o => 
-            `<option value="${o.value}" ${o.value == value ? 'selected' : ''}>${escapeHtml(o.label)}</option>`
-          ).join('');
-          return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select form-select-sm" id="prof-modal-${name}"><option value="">Select Network</option>${opts}</select></div>`;
+    Promise.all([apiCall("profile/get"), apiCall("profile/getOptions")]).then(
+      ([res, optionsRes]) => {
+        if (!res?.ok) {
+          modalBody.innerHTML = `<div class="text-danger">Error loading profile: ${
+            res?.message || "Unknown error"
+          }</div>`;
+          return;
         }
-        
-        if (name === 'facility_id') {
-          const opts = options.facilities.map(o => 
-            `<option value="${escapeHtml(o.value)}" ${o.value == value ? 'selected' : ''}>${escapeHtml(o.label)}</option>`
-          ).join('');
-          return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select form-select-sm" id="prof-modal-${name}"><option value="">Select Facility</option>${opts}</select></div>`;
-        }
-        
-        if (name === 'supervisor_id') {
-          const opts = options.supervisors.map(o => 
-            `<option value="${o.value}" ${o.value == value ? 'selected' : ''}>${escapeHtml(o.label)}</option>`
-          ).join('');
-          return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select form-select-sm" id="prof-modal-${name}"><option value="">Select Supervisor</option>${opts}</select></div>`;
-        }
-        
-        if (name === 'gender') {
-          return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select form-select-sm" id="prof-modal-${name}">
-            <option value="">Select Gender</option>
-            <option value="male" ${value === 'male' ? 'selected' : ''}>Male</option>
-            <option value="female" ${value === 'female' ? 'selected' : ''}>Female</option>
-          </select></div>`;
-        }
-        
-        if (name === 'dob') {
-          return `<div class="mb-2"><label class="form-label">${label}</label><input type="date" class="form-control form-control-sm" id="prof-modal-${name}" value="${escapeHtml(String(value || ''))}"></div>`;
-        }
-        
-        if (name === 'comments') {
-          return `<div class="mb-2"><label class="form-label">${label}</label><textarea class="form-control form-control-sm" id="prof-modal-${name}" rows="2">${escapeHtml(String(value || ''))}</textarea></div>`;
-        }
-        
-        return `<div class="mb-2"><label class="form-label">${label}</label><input class="form-control form-control-sm" id="prof-modal-${name}" value="${escapeHtml(String(value || ''))}"></div>`;
-      };
 
-      const fields = [
-        "employee_id", "national_id", "scfhs_id", "dob", "gender",
-        "job_title", "specialty", "network_id", "supervisor_id",
-        "fullname_ar", "fullname_en", "facility_id",
-        "phone", "address", "comments"
-      ];
+        const profile = res.profile || {};
+        const options = optionsRes?.ok
+          ? optionsRes.options
+          : { networks: [], facilities: [], supervisors: [] };
 
-      const isIncomplete = fields.some(f => !profile[f]);
-      const warningMsg = isIncomplete
-        ? '<div class="alert alert-warning mb-3 small">Please complete your profile information.</div>'
-        : "";
+        const escapeHtml = (text) => {
+          const div = document.createElement("div");
+          div.textContent = text;
+          return div.innerHTML;
+        };
 
-      const form = fields.map(name => renderModalField(name, profile[name])).join("");
+        const renderModalField = (name, value) => {
+          const label = name.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
-      modalBody.innerHTML =
-        warningMsg +
-        form +
-        '<div class="text-danger small mt-2" id="profile-modal-error" style="display:none"></div>';
-      saveBtn.style.display = "";
-
-      const newSaveBtn = saveBtn.cloneNode(true);
-      saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-      newSaveBtn.addEventListener("click", () => {
-        const data = {};
-        fields.forEach((n) => {
-          const input = document.getElementById(`prof-modal-${n}`);
-          if (input) data[n] = input.value || '';
-        });
-
-        const errorEl = document.getElementById("profile-modal-error");
-        errorEl.style.display = "none";
-
-        const originalText = newSaveBtn.textContent;
-        newSaveBtn.disabled = true;
-        newSaveBtn.textContent = "Saving...";
-
-        apiCall("profile/upsert", { data }).then((saveRes) => {
-          newSaveBtn.disabled = false;
-          newSaveBtn.textContent = originalText;
-
-          if (!saveRes?.ok) {
-            const errorMsg = saveRes?.message || "Save failed";
-            const errorDetail = saveRes?.error ? ` - ${saveRes.error}` : "";
-            const errorDbDetail = saveRes?.detail ? ` (${saveRes.detail})` : "";
-            errorEl.textContent = errorMsg + errorDetail + errorDbDetail;
-            errorEl.style.display = "";
-            console.error("Profile save error:", saveRes);
-            return;
+          if (name === "network_id") {
+            const opts = options.networks
+              .map(
+                (o) =>
+                  `<option value="${o.value}" ${o.value == value ? "selected" : ""}>${escapeHtml(
+                    o.label
+                  )}</option>`
+              )
+              .join("");
+            return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select form-select-sm" id="prof-modal-${name}"><option value="">Select Network</option>${opts}</select></div>`;
           }
 
-          const successMsg = document.createElement("div");
-          successMsg.className = "alert alert-success mt-2 small";
-          successMsg.textContent = "Profile saved successfully!";
-          modalBody.appendChild(successMsg);
+          if (name === "facility_id") {
+            const opts = options.facilities
+              .map(
+                (o) =>
+                  `<option value="${escapeHtml(o.value)}" ${
+                    o.value == value ? "selected" : ""
+                  }>${escapeHtml(o.label)}</option>`
+              )
+              .join("");
+            return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select form-select-sm" id="prof-modal-${name}"><option value="">Select Facility</option>${opts}</select></div>`;
+          }
 
-          setTimeout(() => {
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-          }, 1000);
+          if (name === "supervisor_id") {
+            const opts = options.supervisors
+              .map(
+                (o) =>
+                  `<option value="${o.value}" ${o.value == value ? "selected" : ""}>${escapeHtml(
+                    o.label
+                  )}</option>`
+              )
+              .join("");
+            return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select form-select-sm" id="prof-modal-${name}"><option value="">Select Supervisor</option>${opts}</select></div>`;
+          }
+
+          if (name === "gender") {
+            return `<div class="mb-2"><label class="form-label">${label}</label><select class="form-select form-select-sm" id="prof-modal-${name}">
+            <option value="">Select Gender</option>
+            <option value="male" ${value === "male" ? "selected" : ""}>Male</option>
+            <option value="female" ${value === "female" ? "selected" : ""}>Female</option>
+          </select></div>`;
+          }
+
+          if (name === "dob") {
+            return `<div class="mb-2"><label class="form-label">${label}</label><input type="date" class="form-control form-control-sm" id="prof-modal-${name}" value="${escapeHtml(
+              String(value || "")
+            )}"></div>`;
+          }
+
+          if (name === "comments") {
+            return `<div class="mb-2"><label class="form-label">${label}</label><textarea class="form-control form-control-sm" id="prof-modal-${name}" rows="2">${escapeHtml(
+              String(value || "")
+            )}</textarea></div>`;
+          }
+
+          return `<div class="mb-2"><label class="form-label">${label}</label><input class="form-control form-control-sm" id="prof-modal-${name}" value="${escapeHtml(
+            String(value || "")
+          )}"></div>`;
+        };
+
+        const fields = [
+          "employee_id",
+          "national_id",
+          "scfhs_id",
+          "dob",
+          "gender",
+          "job_title",
+          "specialty",
+          "network_id",
+          "supervisor_id",
+          "fullname_ar",
+          "fullname_en",
+          "facility_id",
+          "phone",
+          "address",
+          "comments",
+        ];
+
+        const isIncomplete = fields.some((f) => !profile[f]);
+        const warningMsg = isIncomplete
+          ? '<div class="alert alert-warning mb-3 small">Please complete your profile information.</div>'
+          : "";
+
+        const form = fields.map((name) => renderModalField(name, profile[name])).join("");
+
+        const passwordSection = `
+          <hr class="my-3">
+          <h6 class="mb-3">Change Password</h6>
+          <div class="mb-2">
+            <label class="form-label">Current Password</label>
+            <input type="password" class="form-control form-control-sm" id="modal-current-password" placeholder="Required to change password">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-control form-control-sm" id="modal-new-password" placeholder="Leave blank to keep current">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" class="form-control form-control-sm" id="modal-confirm-password" placeholder="Leave blank to keep current">
+          </div>
+        `;
+
+        modalBody.innerHTML =
+          warningMsg +
+          form +
+          passwordSection +
+          '<div class="text-danger small mt-2" id="profile-modal-error" style="display:none"></div>';
+        saveBtn.style.display = "";
+
+        const newSaveBtn = saveBtn.cloneNode(true);
+        saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+        newSaveBtn.addEventListener("click", () => {
+          const data = {};
+          fields.forEach((n) => {
+            const input = document.getElementById(`prof-modal-${n}`);
+            if (input) data[n] = input.value || "";
+          });
+
+          const errorEl = document.getElementById("profile-modal-error");
+          errorEl.style.display = "none";
+
+          // Check password fields
+          const currentPassword = document.getElementById("modal-current-password")?.value || "";
+          const newPassword = document.getElementById("modal-new-password")?.value || "";
+          const confirmPassword = document.getElementById("modal-confirm-password")?.value || "";
+
+          if (newPassword || confirmPassword || currentPassword) {
+            if (!currentPassword) {
+              errorEl.textContent = "Current password is required to change password";
+              errorEl.style.display = "";
+              return;
+            }
+            if (!newPassword) {
+              errorEl.textContent = "New password is required";
+              errorEl.style.display = "";
+              return;
+            }
+            if (newPassword !== confirmPassword) {
+              errorEl.textContent = "Passwords do not match";
+              errorEl.style.display = "";
+              return;
+            }
+            if (newPassword.length < 4) {
+              errorEl.textContent = "Password must be at least 4 characters";
+              errorEl.style.display = "";
+              return;
+            }
+          }
+
+          const originalText = newSaveBtn.textContent;
+          newSaveBtn.disabled = true;
+          newSaveBtn.textContent = "Saving...";
+
+          // Save profile first
+          apiCall("profile/upsert", { data }).then((saveRes) => {
+            if (!saveRes?.ok) {
+              newSaveBtn.disabled = false;
+              newSaveBtn.textContent = originalText;
+              const errorMsg = saveRes?.message || "Save failed";
+              const errorDetail = saveRes?.error ? ` - ${saveRes.error}` : "";
+              const errorDbDetail = saveRes?.detail ? ` (${saveRes.detail})` : "";
+              errorEl.textContent = errorMsg + errorDetail + errorDbDetail;
+              errorEl.style.display = "";
+              console.error("Profile save error:", saveRes);
+              return;
+            }
+
+            // If password change requested, handle it
+            if (newPassword && currentPassword) {
+              apiCall("auth/change-password", { currentPassword, newPassword }).then((pwRes) => {
+                newSaveBtn.disabled = false;
+                newSaveBtn.textContent = originalText;
+
+                if (!pwRes?.ok) {
+                  errorEl.textContent = `Profile saved, but password change failed: ${
+                    pwRes?.message || "Unknown error"
+                  }`;
+                  errorEl.style.display = "";
+                  return;
+                }
+
+                const successMsg = document.createElement("div");
+                successMsg.className = "alert alert-success mt-2 small";
+                successMsg.textContent = "Profile and password updated successfully!";
+                modalBody.appendChild(successMsg);
+
+                // Refresh navbar to show updated info
+                buildNav();
+
+                setTimeout(() => {
+                  const modal = bootstrap.Modal.getInstance(modalEl);
+                  if (modal) modal.hide();
+                }, 1000);
+              });
+            } else {
+              newSaveBtn.disabled = false;
+              newSaveBtn.textContent = originalText;
+
+              const successMsg = document.createElement("div");
+              successMsg.className = "alert alert-success mt-2 small";
+              successMsg.textContent = "Profile saved successfully!";
+              modalBody.appendChild(successMsg);
+
+              // Refresh navbar to show updated info
+              buildNav();
+
+              setTimeout(() => {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+              }, 1000);
+            }
+          });
         });
-      });
-    });
+      }
+    );
   }
 
   function renderDashboardCards(rows, tableName) {
