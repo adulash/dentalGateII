@@ -456,12 +456,17 @@
     const root = el("page-content");
     showLoading();
 
-    apiCall("admin/listUsers").then((res) => {
+    // Fetch users and available pages
+    Promise.all([
+      apiCall("admin/listUsers"),
+      apiCall("pages_list")
+    ]).then(([usersRes, pagesRes]) => {
       hideLoading();
-      const users = res?.users || [];
+      const users = usersRes?.users || [];
+      const availablePages = pagesRes?.pages || [];
 
       const header =
-        '<div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0">Users</h6><button class="btn btn-sm btn-success" id="btn-add-user">Add User</button></div>';
+        '<div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0">User Management</h6><button class="btn btn-sm btn-success" id="btn-add-user">Add User</button></div>';
 
       const escapeHtml = (text) => {
         const div = document.createElement("div");
@@ -470,29 +475,36 @@
       };
 
       const table = [
-        '<div class="table-responsive"><table class="table table-striped table-sm"><thead><tr><th>Email</th><th>Role</th><th>Status</th><th>Allowed Pages</th><th>Action</th></tr></thead><tbody>',
+        '<div class="table-responsive"><table class="table table-striped table-sm"><thead><tr><th>Email</th><th style="min-width:120px;">Role</th><th style="min-width:120px;">Status</th><th style="min-width:200px;">Allowed Pages</th><th>Action</th></tr></thead><tbody>',
         ...users.map((u) => {
+          const userPages = u.allowed_pages || [];
+          const pageOptions = availablePages.map(p => 
+            `<option value="${escapeHtml(p)}" ${userPages.includes(p) ? 'selected' : ''}>${escapeHtml(p)}</option>`
+          ).join('');
+          
           return `<tr>
             <td>${escapeHtml(String(u.email || ""))}</td>
-            <td>${escapeHtml(String(u.role || ""))}</td>
             <td>
-              <select class="form-select form-select-sm" data-status-email="${escapeHtml(
-                String(u.email || "")
-              )}">
-                <option value="Active" ${
-                  String(u.status || "Active") === "Active" ? "selected" : ""
-                }>Active</option>
-                <option value="Inactive" ${
-                  String(u.status || "Active") === "Inactive" ? "selected" : ""
-                }>Inactive</option>
+              <select class="form-select form-select-sm" data-role-email="${escapeHtml(String(u.email || ""))}">
+                <option value="Admin" ${String(u.role || "") === "Admin" ? "selected" : ""}>Admin</option>
+                <option value="User" ${String(u.role || "") === "User" ? "selected" : ""}>User</option>
+                <option value="Manager" ${String(u.role || "") === "Manager" ? "selected" : ""}>Manager</option>
               </select>
             </td>
-            <td><input class="form-control form-control-sm" value="${escapeHtml(
-              String((u.allowed_pages || []).join(", "))
-            )}" data-pages-email="${escapeHtml(String(u.email || ""))}"></td>
-            <td><button class="btn btn-sm btn-primary" data-save="${escapeHtml(
-              String(u.email || "")
-            )}">Save</button></td>
+            <td>
+              <select class="form-select form-select-sm" data-status-email="${escapeHtml(String(u.email || ""))}">
+                <option value="Active" ${String(u.status || "Active") === "Active" ? "selected" : ""}>Active</option>
+                <option value="Inactive" ${String(u.status || "Active") === "Inactive" ? "selected" : ""}>Inactive</option>
+              </select>
+            </td>
+            <td>
+              <select multiple class="form-select form-select-sm" data-pages-email="${escapeHtml(String(u.email || ""))}" style="height:80px;">
+                ${pageOptions}
+              </select>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-primary" data-save="${escapeHtml(String(u.email || ""))}">Save</button>
+            </td>
           </tr>`;
         }),
         "</tbody></table></div>",
@@ -500,47 +512,49 @@
 
       root.innerHTML = header + table;
 
-      el("btn-add-user")?.addEventListener("click", openAddUserModal);
+      el("btn-add-user")?.addEventListener("click", () => openAddUserModal(availablePages));
 
       root.querySelectorAll("button[data-save]").forEach((btn) => {
         btn.onclick = () => {
           const email = btn.getAttribute("data-save");
-          const pagesInput = root.querySelector(`input[data-pages-email="${email}"]`);
+          const pagesSelect = root.querySelector(`select[data-pages-email="${email}"]`);
           const statusSelect = root.querySelector(`select[data-status-email="${email}"]`);
-          const pages = (pagesInput.value || "")
-            .split(",")
-            .map((x) => x.trim())
-            .filter(Boolean);
+          const roleSelect = root.querySelector(`select[data-role-email="${email}"]`);
+          
+          const pages = Array.from(pagesSelect.selectedOptions).map(opt => opt.value);
           const status = statusSelect.value;
+          const role = roleSelect.value;
 
           const originalText = btn.textContent;
           btn.disabled = true;
           btn.textContent = "Saving...";
 
-          apiCall("admin/setAllowedPages", { email, pages }).then((res1) => {
-            if (!res1?.ok) {
-              btn.disabled = false;
+          // Save all three: role, pages, status
+          Promise.all([
+            apiCall("admin/setUserRole", { email, role }),
+            apiCall("admin/setAllowedPages", { email, pages }),
+            apiCall("admin/setUserStatus", { email, status })
+          ]).then(([roleRes, pagesRes, statusRes]) => {
+            btn.disabled = false;
+            
+            if (!roleRes?.ok || !pagesRes?.ok || !statusRes?.ok) {
               btn.textContent = originalText;
-              alert(res1?.message || "Save pages failed");
+              const errors = [];
+              if (!roleRes?.ok) errors.push(roleRes?.message || "Role update failed");
+              if (!pagesRes?.ok) errors.push(pagesRes?.message || "Pages update failed");
+              if (!statusRes?.ok) errors.push(statusRes?.message || "Status update failed");
+              alert(errors.join("\n"));
               return;
             }
-
-            apiCall("admin/setUserStatus", { email, status }).then((res2) => {
-              btn.disabled = false;
-              if (!res2?.ok) {
-                btn.textContent = originalText;
-                alert(res2?.message || "Save status failed");
-                return;
-              }
-              btn.textContent = "Saved!";
-              btn.classList.remove("btn-primary");
-              btn.classList.add("btn-success");
-              setTimeout(() => {
-                btn.textContent = originalText;
-                btn.classList.remove("btn-success");
-                btn.classList.add("btn-primary");
-              }, 2000);
-            });
+            
+            btn.textContent = "Saved!";
+            btn.classList.remove("btn-primary");
+            btn.classList.add("btn-success");
+            setTimeout(() => {
+              btn.textContent = originalText;
+              btn.classList.remove("btn-success");
+              btn.classList.add("btn-primary");
+            }, 2000);
           });
         };
       });
@@ -568,7 +582,7 @@
 
   function submitAddUser() {
     const email = el("new-user-email").value.trim();
-    const role = el("new-user-role").value.trim();
+    const role = el("new-user-role").value;
     const errorEl = el("add-user-error");
     const resultEl = el("add-user-result");
     const submitBtn = el("btn-submit-user");

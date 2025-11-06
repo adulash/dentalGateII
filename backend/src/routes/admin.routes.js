@@ -132,6 +132,30 @@ router.post('/setUserStatus', async (req, res) => {
 });
 
 /**
+ * POST /api/admin/setUserRole
+ * Set user role
+ */
+router.post('/setUserRole', async (req, res) => {
+  try {
+    const { email, role } = req.body;
+
+    if (!email || !role) {
+      return res.json({ ok: false, message: 'Email and role are required' });
+    }
+
+    await query(
+      'UPDATE users SET role = $1 WHERE email = $2',
+      [role, email.toLowerCase().trim()]
+    );
+
+    return res.json({ ok: true, message: 'User role updated' });
+  } catch (error) {
+    console.error('Set user role error:', error);
+    return res.json({ ok: false, message: 'Failed to update user role' });
+  }
+});
+
+/**
  * POST /api/admin/deleteUser
  * Delete a user
  */

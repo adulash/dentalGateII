@@ -382,7 +382,12 @@
             </div>
             <div class="mb-3">
               <label class="form-label">Role</label>
-              <input type="text" class="form-control" id="new-user-role" required>
+              <select class="form-select" id="new-user-role" required>
+                <option value="">Select Role</option>
+                <option value="Admin">Admin</option>
+                <option value="User">User</option>
+                <option value="Manager">Manager</option>
+              </select>
             </div>
           </form>
           <div class="alert alert-success" id="add-user-result" style="display:none"></div>
