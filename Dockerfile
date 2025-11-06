@@ -3,14 +3,12 @@
 # Stage 1: Build stage
 FROM node:18-alpine AS builder
 
-WORKDIR /app
+WORKDIR /app/backend
 
 # Copy package files
-COPY backend/package*.json ./backend/
-COPY package*.json ./
+COPY backend/package*.json ./
 
 # Install dependencies
-WORKDIR /app/backend
 RUN npm ci --only=production
 
 # Stage 2: Production stage
@@ -25,15 +23,13 @@ RUN addgroup -g 1001 -S nodejs && \
 
 WORKDIR /app
 
-# Copy node_modules from builder
-COPY --from=builder --chown=nodejs:nodejs /app/backend/node_modules ./backend/node_modules
-
-# Copy application code
+# Copy application code first
 COPY --chown=nodejs:nodejs backend ./backend
 COPY --chown=nodejs:nodejs public ./public
+COPY --chown=nodejs:nodejs data ./data
 
-# Create data directory for migrations
-RUN mkdir -p /app/data && chown nodejs:nodejs /app/data
+# Copy node_modules from builder
+COPY --from=builder --chown=nodejs:nodejs /app/backend/node_modules ./backend/node_modules
 
 # Set working directory to backend
 WORKDIR /app/backend
